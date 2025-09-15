@@ -1,23 +1,43 @@
 <!DOCTYPE html>
 <html lang="en">
+<!-- 
+Thanks Gemini
+Most of this was structured and written by Gemini, and later modified
+-->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Simple Weather Widget</title>
     <style>
+
+        /* * Declare the font using @font-face 
+         * This tells the browser where to find the font and gives it a name.
+         */
+        @font-face {
+            font-family: 'AvenirHeavy';
+            src: url('fonts/AvenirLTStd-Heavy.otf') format('opentype');
+            /* You can add a local() path as a fallback for users who have it installed */
+            /* src: local('Avenir LT Std Heavy'), url('AvenirLTStd-Heavy.otf') format('opentype'); */
+        }
+
+        @font-face {
+            font-family: 'AvenirNextHeavy';
+            src: url('fonts/AvenirNext-Heavy-09.ttf') format('opentype');
+            /* You can add a local() path as a fallback for users who have it installed */
+            /* src: local('Avenir LT Std Heavy'), url('AvenirLTStd-Heavy.otf') format('opentype'); */
+        }
+
         body {
-            font-family: sans-serif;
+            font-family: 'AvenirHeavy', sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-color: #f0f0f0;
+            
         }
         .weather-widget {
-            background-color: #ffffff;
             border-radius: 10px;
             padding: 20px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             text-align: center;
             max-width: 300px;
             color: #333;
@@ -32,9 +52,9 @@
             margin: 10px auto;
         }
         .temperature {
+            font-family: 'AvenirNextHeavy';
             font-size: 3em;
-            font-weight: bold;
-            color: #007bff;
+            color: #333;
         }
         .description {
             font-size: 1.2em;
@@ -48,12 +68,12 @@
 </head>
 <body>
 
-<div class="weather-widget">
-    <h2>Current Weather (Madison, WI)</h2>
-    <div id="weather-display" class="loading">
-        <p>Loading weather data...</p>
+    <div class="weather-widget">
+        <h2>Current Weather</h2>
+        <div id="weather-display">
+            <p class="loading">Loading weather data...</p>
+        </div>
     </div>
-</div>
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -89,9 +109,11 @@
                 // Get the first period (current conditions)
                 const current = forecastData.properties.periods[0];
 
+                // <img src="${current.icon}" alt="Weather Icon" class="weather-icon">
+
                 // 3. Display the weather
                 const weatherHTML = `
-                    <img src="${current.icon}" alt="Weather Icon" class="weather-icon">
+                    
                     <div class="temperature">${current.temperature}°${current.temperatureUnit}</div>
                     <div class="description">${current.shortForecast}</div>
                 `;
@@ -100,10 +122,13 @@
             } catch (err) {
                 showError(`Could not fetch weather data. Please try again later. (${err.message})`);
             }
+
+            setTimeout(fetchWeather, 600000)  // Repeat every 600 seconds
         }
 
         // Call the main function to fetch the weather
         fetchWeather();
+        
     });
 </script>
 
