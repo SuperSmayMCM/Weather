@@ -8,68 +8,12 @@ Most of this was structured and written by Gemini, and later modified
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Simple Weather Widget</title>
-    <style>
-
-        /* * Declare the font using @font-face 
-         * This tells the browser where to find the font and gives it a name.
-         */
-        @font-face {
-            font-family: 'AvenirHeavy';
-            src: url('fonts/AvenirLTStd-Heavy.otf') format('opentype');
-            /* You can add a local() path as a fallback for users who have it installed */
-            /* src: local('Avenir LT Std Heavy'), url('AvenirLTStd-Heavy.otf') format('opentype'); */
-        }
-
-        @font-face {
-            font-family: 'AvenirNextHeavy';
-            src: url('fonts/AvenirNext-Heavy-09.ttf') format('opentype');
-            /* You can add a local() path as a fallback for users who have it installed */
-            /* src: local('Avenir LT Std Heavy'), url('AvenirLTStd-Heavy.otf') format('opentype'); */
-        }
-
-        body {
-            font-family: 'AvenirHeavy', sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            
-        }
-        .weather-widget {
-            border-radius: 10px;
-            padding: 20px;
-            text-align: center;
-            max-width: 300px;
-            color: #333;
-        }
-        .weather-widget h2 {
-            margin-top: 0;
-            color: #555;
-        }
-        .weather-icon {
-            width: 100px;
-            height: 100px;
-            margin: 10px auto;
-        }
-        .temperature {
-            font-family: 'AvenirNextHeavy';
-            font-size: 3em;
-            color: #333;
-        }
-        .description {
-            font-size: 1.2em;
-            margin-top: 5px;
-        }
-        .loading {
-            font-style: italic;
-            color: #777;
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <div class="weather-widget">
-        <h2>Current Weather</h2>
+    <div id="weather-widget" class="weather-widget">
+        <h1>Current Weather</h1>
         <div id="weather-display">
             <p class="loading">Loading weather data...</p>
         </div>
@@ -77,12 +21,58 @@ Most of this was structured and written by Gemini, and later modified
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
+
+        let count = 0;
+
+        const weatherWidget = document.getElementById('weather-widget');
         const weatherDisplay = document.getElementById('weather-display');
 
         // --- Hardcoded Location ---
-        // Coordinates for Madison, Wisconsin
-        const lat = 43.0731;
-        const lon = -89.4012;
+        // Coordinates for Madison Children's Museum
+        const lat = 43.07699;
+        const lon = -89.38465;
+
+        // This is maybe bad! This a mapping from the NWS icon urls to the weather-icons class names
+        // Thanks Copilot for doing that all for me
+        const iconMap = {
+            "skc": "wi-day-sunny",
+            "few": "wi-day-sunny-overcast",
+            "sct": "wi-day-cloudy",
+            "bkn": "wi-cloudy",
+            "ovc": "wi-cloudy",
+            "wind_skc": "wi-day-windy",
+            "wind_few": "wi-day-windy",
+            "wind_sct": "wi-day-windy",
+            "wind_bkn": "wi-day-windy",
+            "wind_ovc": "wi-day-windy",
+            "snow": "wi-snow",
+            "rain_snow": "wi-rain-mix",
+            "rain_sleet": "wi-rain-mix",
+            "snow_sleet": "wi-snow",
+            "fz_ra": "wi-rain-mix",
+            "fz_sn": "wi-snow",
+            "fz_rain_snow": "wi-rain-mix",
+            "fz_rain_sleet": "wi-rain-mix",
+            "fz_snow_sleet": "wi-snow",
+            "rain": "wi-rain",
+            "rain_showers": "wi-showers",
+            "rain_showers_hi": "wi-showers",
+            "tsra": "wi-thunderstorm",
+            "tsra_sct": "wi-thunderstorm",
+            "tsra_hi": "wi-thunderstorm",
+            "tornado": "wi-tornado",
+            "hurricane": "wi-hurricane",
+            "tropical_storm": "wi-hurricane",
+            "dust": "wi-dust",
+            "smoke": "wi-smoke",
+            "haze": "wi-day-haze",
+            "fog": "wi-fog",
+            "hot": "wi-hot",
+            "cold": "wi-snowflake-cold",
+            "blizzard": "wi-snow-wind",
+            "fog": "wi-fog",
+            "na": "wi-na"
+        };
 
         // Function to handle errors
         function showError(message) {
@@ -90,6 +80,9 @@ Most of this was structured and written by Gemini, and later modified
         }
 
         async function fetchWeather() {
+
+            count++;
+
             try {
                 // 1. Get the forecast office and URL
                 const pointsResponse = await fetch(`https://api.weather.gov/points/${lat},${lon}`);
@@ -109,21 +102,59 @@ Most of this was structured and written by Gemini, and later modified
                 // Get the first period (current conditions)
                 const current = forecastData.properties.periods[0];
 
-                // <img src="${current.icon}" alt="Weather Icon" class="weather-icon">
+                // NOTE: This is scuffed, and is written like this so that it gracefully
+                // falls back to no icon.
+                // NWS does not provide an icon code, so we extract it from the icon URL
+
+                let iconUrlData = null
+                // Get the icon code from the icon URL
+                try {
+                    iconUrlData = current.icon.split('/')[current.icon.split('/').length - 1].split('?')[0]; // Extract icon code from URL
+                } catch (error) {
+                    console.error("Error extracting icon code:", error);
+                }
 
                 // 3. Display the weather
-                const weatherHTML = `
-                    
-                    <div class="temperature">${current.temperature}°${current.temperatureUnit}</div>
-                    <div class="description">${current.shortForecast}</div>
-                `;
-                weatherDisplay.innerHTML = weatherHTML;
+
+                const conditionsDiv = document.createElement('div');
+                conditionsDiv.classList.add('conditions');
+
+
+                let tempAndIconHTML = ``;
+                if (iconUrlData && iconMap[iconUrlData]) {
+                    const iconHTML = document.createElement('i');
+                    iconHTML.classList.add('wi', iconMap[iconUrlData], 'condition', 'weather-icon');
+                    // Append icon HTML to the tempAndIconHTML string
+                    conditionsDiv.appendChild(iconHTML);
+                }
+                const tempHTML = document.createElement('p');
+                tempHTML.classList.add('temperature', 'condition');
+                tempHTML.textContent = `${current.temperature}°${current.temperatureUnit}`;
+                conditionsDiv.appendChild(tempHTML);
+                // Append temperature HTML to the tempAndIconHTML string
+
+                const shortForecastHTML = document.createElement('p');
+                shortForecastHTML.classList.add('description', 'condition');
+                shortForecastHTML.textContent = current.shortForecast;
+
+                const weatherHTML = document.createElement('div');
+                weatherHTML.appendChild(conditionsDiv);
+                weatherHTML.appendChild(shortForecastHTML);
+                weatherDisplay.innerHTML = ''; // Clear previous content
+                weatherDisplay.appendChild(weatherHTML);
+
+                weatherWidget.style.visibility = "visible"; // Show the widget after the weather has loaded successfully
 
             } catch (err) {
                 showError(`Could not fetch weather data. Please try again later. (${err.message})`);
+                setTimeout(() => {
+                    weatherWidget.style.visibility = "hidden"; // Hide the widget after an error
+                    // This is so that if the weather fails to load, it doesn't show a loading message or outdated weather
+                }, 10000);
             }
 
-            setTimeout(fetchWeather, 600000)  // Repeat every 600 seconds
+
+            setTimeout(fetchWeather, 600000);  // Repeat every 600 seconds
         }
 
         // Call the main function to fetch the weather

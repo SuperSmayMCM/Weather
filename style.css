@@ -1,0 +1,59 @@
+@import url(./css/weather-icons.min.css);
+
+/* * Declare the font using @font-face 
+    * This tells the browser where to find the font and gives it a name.
+    */
+@font-face {
+    font-family: 'AvenirHeavy';
+    src: url('font/AvenirLTStd-Heavy.otf') format('opentype');
+}
+
+@font-face {
+    font-family: 'AvenirNextHeavy';
+    src: url('font/AvenirNext-Heavy-09.ttf') format('opentype');
+}
+
+body {
+    font-family: 'AvenirHeavy', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    
+}
+.weather-widget {
+    border-radius: 10px;
+    padding: 10px;
+    text-align: center;
+    color: #424B4C;
+}
+.weather-widget h1 {
+    margin-top: 0;
+    margin-bottom: 5px;
+    font-size: 40px;
+    color: #424B4C;
+}
+.weather-icon {
+    color: #424B4C;
+    padding-right: 20px;
+}
+.temperature {
+    font-family: 'AvenirNextHeavy';
+    margin: 0px;
+    color: #424B4C;
+}
+.description {
+    font-size: 40px;
+    margin-top: 0px;
+}
+.loading {
+    font-style: italic;
+    color: #777;
+}
+.condition {
+    display: inline-block;
+}
+.conditions {
+    font-size: 90px;
+    padding-top: 20px;
+}
