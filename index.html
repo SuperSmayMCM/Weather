@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Weather Widget</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+        .weather-widget {
+            background-color: #ffffff;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 300px;
+            color: #333;
+        }
+        .weather-widget h2 {
+            margin-top: 0;
+            color: #555;
+        }
+        .weather-icon {
+            width: 100px;
+            height: 100px;
+            margin: 10px auto;
+        }
+        .temperature {
+            font-size: 3em;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .description {
+            font-size: 1.2em;
+            margin-top: 5px;
+        }
+        .loading {
+            font-style: italic;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+
+<div class="weather-widget">
+    <h2>Current Weather (Madison, WI)</h2>
+    <div id="weather-display" class="loading">
+        <p>Loading weather data...</p>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const weatherDisplay = document.getElementById('weather-display');
+
+        // --- Hardcoded Location ---
+        // Coordinates for Madison, Wisconsin
+        const lat = 43.0731;
+        const lon = -89.4012;
+
+        // Function to handle errors
+        function showError(message) {
+            weatherDisplay.innerHTML = `<p style="color: red;">Error: ${message}</p>`;
+        }
+
+        async function fetchWeather() {
+            try {
+                // 1. Get the forecast office and URL
+                const pointsResponse = await fetch(`https://api.weather.gov/points/${lat},${lon}`);
+                if (!pointsResponse.ok) {
+                    throw new Error(`HTTP error! Status: ${pointsResponse.status}`);
+                }
+                const pointsData = await pointsResponse.json();
+                const forecastUrl = pointsData.properties.forecastHourly;
+
+                // 2. Get the hourly forecast
+                const forecastResponse = await fetch(forecastUrl);
+                if (!forecastResponse.ok) {
+                    throw new Error(`HTTP error! Status: ${forecastResponse.status}`);
+                }
+                const forecastData = await forecastResponse.json();
+                
+                // Get the first period (current conditions)
+                const current = forecastData.properties.periods[0];
+
+                // 3. Display the weather
+                const weatherHTML = `
+                    <img src="${current.icon}" alt="Weather Icon" class="weather-icon">
+                    <div class="temperature">${current.temperature}°${current.temperatureUnit}</div>
+                    <div class="description">${current.shortForecast}</div>
+                `;
+                weatherDisplay.innerHTML = weatherHTML;
+
+            } catch (err) {
+                showError(`Could not fetch weather data. Please try again later. (${err.message})`);
+            }
+        }
+
+        // Call the main function to fetch the weather
+        fetchWeather();
+    });
+</script>
+
+</body>
+</html>
