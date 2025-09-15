@@ -7,11 +7,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Hardcoded Location ---
     // Coordinates for Madison Children's Museum
-    const lat = 43.07699;
-    const lon = -89.38465;
+    const lat = 43.0731;
+    const lon = -89.4012;
 
     // Mapping from NWS icon urls to weather-icons class names
-    const iconMap = {
+    const iconMapDay = {
         "skc": "wi-day-sunny",
         "few": "wi-day-sunny-overcast",
         "sct": "wi-day-cloudy",
@@ -46,8 +46,45 @@ document.addEventListener('DOMContentLoaded', () => {
         "fog": "wi-fog",
         "hot": "wi-hot",
         "cold": "wi-snowflake-cold",
-        "blizzard": "wi-snow-wind",
-        "na": "wi-na"
+        "blizzard": "wi-snow-wind"
+    };
+
+    const iconMapNight = {
+        "skc": "wi-night-clear",
+        "few": "wi-night-partly-cloudy",
+        "sct": "wi-night-cloudy",
+        "bkn": "wi-cloudy",
+        "ovc": "wi-cloudy",
+        "wind_skc": "wi-night-alt-cloudy-windy",
+        "wind_few": "wi-night-alt-cloudy-windy",
+        "wind_sct": "wi-night-alt-cloudy-windy",
+        "wind_bkn": "wi-night-alt-cloudy-windy",
+        "wind_ovc": "wi-night-alt-cloudy-windy",
+        "snow": "wi-snow",
+        "rain_snow": "wi-rain-mix",
+        "rain_sleet": "wi-rain-mix",
+        "snow_sleet": "wi-snow",
+        "fz_ra": "wi-rain-mix",
+        "fz_sn": "wi-snow",
+        "fz_rain_snow": "wi-rain-mix",
+        "fz_rain_sleet": "wi-rain-mix",
+        "fz_snow_sleet": "wi-snow",
+        "rain": "wi-rain",
+        "rain_showers": "wi-showers",
+        "rain_showers_hi": "wi-showers",
+        "tsra": "wi-thunderstorm",
+        "tsra_sct": "wi-thunderstorm",
+        "tsra_hi": "wi-thunderstorm",
+        "tornado": "wi-tornado",
+        "hurricane": "wi-hurricane",
+        "tropical_storm": "wi-hurricane",
+        "dust": "wi-dust",
+        "smoke": "wi-smoke",
+        "haze": "wi-night-haze",
+        "fog": "wi-fog",
+        "hot": "wi-hot",
+        "cold": "wi-snowflake-cold",
+        "blizzard": "wi-snow-wind"
     };
 
     function showError(message) {
@@ -77,9 +114,16 @@ document.addEventListener('DOMContentLoaded', () => {
             // Get the first period (current conditions)
             const current = forecastData.properties.periods[0];
 
-            let iconUrlData = null;
+            let iconClassname = null;
             try {
-                iconUrlData = current.icon.split('/')[current.icon.split('/').length - 1].split('?')[0];
+                let iconUrlData;
+                iconUrlData = current.icon.split('/')[current.icon.split('/').length - 1].split('?')[0].split(',')[0];
+                iconUrlTime = current.icon.split('/')[current.icon.split('/').length - 2];
+                if (iconUrlTime === "night") {
+                    iconClassname = iconMapNight[iconUrlData]
+                } else {
+                    iconClassname = iconMapDay[iconUrlData]
+                }
             } catch (error) {
                 console.error("Error extracting icon code:", error);
             }
@@ -87,9 +131,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const conditionsDiv = document.createElement('div');
             conditionsDiv.classList.add('conditions');
 
-            if (iconUrlData && iconMap[iconUrlData]) {
+            if (iconClassname) {
                 const iconHTML = document.createElement('i');
-                iconHTML.classList.add('wi', iconMap[iconUrlData], 'condition', 'weather-icon');
+                iconHTML.classList.add('wi', iconClassname, 'condition', 'weather-icon');
                 conditionsDiv.appendChild(iconHTML);
             }
             const tempHTML = document.createElement('p');
@@ -98,7 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
             conditionsDiv.appendChild(tempHTML);
 
             const shortForecastHTML = document.createElement('p');
-            shortForecastHTML.classList.add('description', 'condition');
+            shortForecastHTML.classList.add('description', );
             shortForecastHTML.textContent = current.shortForecast;
 
             const weatherHTML = document.createElement('div');
