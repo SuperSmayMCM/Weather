@@ -170,7 +170,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const feelsLikeHTML = document.createElement('p');
             feelsLikeHTML.classList.add('feels-like', 'condition');
-            feelsLikeHTML.textContent = `Feels like: ${current.apparentTemperature}°${current.temperatureUnit}`;
+            feelsLikeHTML.textContent = `Feels like:`;
+            const feelsLikeTempHTML = document.createElement('span');
+            feelsLikeTempHTML.classList.add('feels-like-temp');
+            feelsLikeTempHTML.textContent = ` ${current.apparentTemperature}°${current.temperatureUnit}`;
+            feelsLikeHTML.appendChild(feelsLikeTempHTML);
 
             const weatherHTML = document.createElement('div');
             weatherHTML.appendChild(conditionsDiv);

@@ -59,8 +59,11 @@ body {
     align-items: center;
 }
 .feels-like {
-    font-family: 'AvenirNextHeavy';
+    font-family: 'AvenirNextDemi';
     font-size: 50px;
     margin: 0px;
-    padding: 20px;
+    padding: 10px;
+}
+.feels-like-temp {
+    font-family: 'AvenirNextHeavy';
 }
