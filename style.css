@@ -4,8 +4,8 @@
     * This tells the browser where to find the font and gives it a name.
     */
 @font-face {
-    font-family: 'AvenirHeavy';
-    src: url('font/AvenirLTStd-Heavy.otf') format('opentype');
+    font-family: 'AvenirNextDemi';
+    src: url('font/AvenirNext-DemiBold-03.ttf') format('opentype');
 }
 
 @font-face {
@@ -14,33 +14,32 @@
 }
 
 body {
-    font-family: 'AvenirHeavy', sans-serif;
+    font-family: 'AvenirNextDemi', sans-serif;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
+    color: #424B4C;
+    font-size: 40px;
     
 }
 .weather-widget {
     border-radius: 10px;
     padding: 10px;
     text-align: center;
-    color: #424B4C;
 }
 .weather-widget h1 {
     margin-top: 0;
     margin-bottom: 5px;
     font-size: 40px;
-    color: #424B4C;
+    
 }
 .weather-icon {
-    color: #424B4C;
     padding-right: 20px;
 }
 .temperature {
     font-family: 'AvenirNextHeavy';
     margin: 0px;
-    color: #424B4C;
 }
 .description {
     font-size: 40px;
@@ -58,4 +57,10 @@ body {
     padding-top: 5px;
     display: flex;
     align-items: center;
+}
+.feels-like {
+    font-family: 'AvenirNextHeavy';
+    font-size: 50px;
+    margin: 0px;
+    padding: 20px;
 }

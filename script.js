@@ -114,6 +114,29 @@ document.addEventListener('DOMContentLoaded', () => {
             // Get the first period (current conditions)
             const current = forecastData.properties.periods[0];
 
+            // Calculate wind chill https://www.weather.gov/safety/cold-wind-chill-chart
+            let windChill = Math.round(35.74 + 0.6215 * current.temperature - 35.75 * Math.pow(current.windSpeed, 0.16) + 0.4275 * current.temperature * Math.pow(current.windSpeed, 0.16));
+            // Only apply wind chill if temperature is 50°F or below and wind speed is above 3 mph
+            if (current.temperature > 50 || parseInt(current.windSpeed) <= 3) {
+                windChill = current.temperature;
+            }
+
+            // Calculate heat index https://www.weather.gov/ama/heatindex
+            let heatIndex = Math.round(-42.379 + (2.04901523 * current.temperature) + (10.14333127 * current.relativeHumidity.value) - (0.22475541 * current.temperature * current.relativeHumidity.value) - (0.00683783 * Math.pow(current.temperature, 2)) - (0.05481717 * Math.pow(current.relativeHumidity.value, 2)) + (0.00122874 * Math.pow(current.temperature, 2) * current.relativeHumidity.value) + (0.00085282 * current.temperature * Math.pow(current.relativeHumidity.value, 2)) - (0.00000199 * Math.pow(current.temperature, 2) * Math.pow(current.relativeHumidity.value, 2)));
+            // Only apply heat index if temperature is 80°F or above and relative humidity is 40% or above
+            if (current.temperature < 80 || current.relativeHumidity.value < 40) {
+                heatIndex = current.temperature;
+            }
+
+            // Use wind chill if applicable, otherwise use heat index
+            if (windChill < current.temperature) {
+                current.apparentTemperature = windChill;
+            } else if (heatIndex > current.temperature) {
+                current.apparentTemperature = heatIndex;
+            } else {
+                current.apparentTemperature = current.temperature;
+            }
+
             let iconClassname = null;
             try {
                 let iconUrlData;
@@ -145,8 +168,13 @@ document.addEventListener('DOMContentLoaded', () => {
             shortForecastHTML.classList.add('description', );
             shortForecastHTML.textContent = current.shortForecast;
 
+            const feelsLikeHTML = document.createElement('p');
+            feelsLikeHTML.classList.add('feels-like', 'condition');
+            feelsLikeHTML.textContent = `Feels like: ${current.apparentTemperature}°${current.temperatureUnit}`;
+
             const weatherHTML = document.createElement('div');
             weatherHTML.appendChild(conditionsDiv);
+            weatherHTML.appendChild(feelsLikeHTML);
             weatherHTML.appendChild(shortForecastHTML);
             weatherDisplay.innerHTML = '';
             weatherDisplay.appendChild(weatherHTML);
