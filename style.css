@@ -13,8 +13,13 @@
     src: url('font/AvenirNext-Heavy-09.ttf') format('opentype');
 }
 
+@font-face {
+    font-family: 'AvenirNextMedium';
+    src: url('font/AvenirNext-Medium-06.ttf') format('opentype');
+}
+
 body {
-    font-family: 'AvenirNextDemi', sans-serif;
+    font-family: 'AvenirNextMedium', sans-serif;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -31,7 +36,7 @@ body {
 .weather-widget h1 {
     margin-top: 0;
     margin-bottom: 5px;
-    font-size: 40px;
+    font-size: 35px;
     
 }
 .weather-icon {
