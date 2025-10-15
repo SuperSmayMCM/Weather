@@ -25,7 +25,7 @@ body {
     align-items: center;
     height: 100vh;
     color: #424B4C;
-    font-size: 25px;
+    font-size: 40px;
     
 }
 .weather-widget {
@@ -33,10 +33,9 @@ body {
     padding: 10px;
     text-align: center;
 }
-.weather-widget h1 {
+.title {
     margin-top: 0;
     margin-bottom: 5px;
-    font-size: 25px
 }
 
 .temperature {
