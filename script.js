@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const weatherWidget = document.getElementById('weather-widget');
     const weatherDisplay = document.getElementById('weather-display');
+    const airQualityDisplay = document.getElementById('air-quality-display');
 
     // --- Hardcoded Location ---
     // Coordinates for Madison Children's Museum
@@ -87,8 +88,20 @@ document.addEventListener('DOMContentLoaded', () => {
         "blizzard": "wi-snow-wind"
     };
 
-    function showError(message) {
-        weatherDisplay.innerHTML = `<p style="color: red;">Error: ${message}</p>`;
+    function showWeatherError(message) {
+        weatherDisplay.innerHTML = '';
+        const errorHTML = document.createElement('p');
+        errorHTML.innerText = `Error: ${message}`;
+        errorHTML.style.color = "red";
+        weatherDisplay.appendChild(errorHTML);
+    }
+
+    function showAirQualityError(message) {
+        airQualityDisplay.innerHTML = '';
+        const errorHTML = document.createElement('p');
+        errorHTML.innerText = `Error: ${message}`;
+        errorHTML.style.color = "red";
+        airQualityDisplay.appendChild(errorHTML);
     }
 
     async function fetchWeather() {
@@ -186,14 +199,129 @@ document.addEventListener('DOMContentLoaded', () => {
             weatherWidget.style.visibility = "visible";
 
         } catch (err) {
-            showError(`Could not fetch weather data. Please try again later. (${err.message})`);
+            showWeatherError(`Could not fetch weather data. Please try again later. (${err.message})`);
             setTimeout(() => {
                 weatherWidget.style.visibility = "hidden";
             }, 10000);
         }
 
-        setTimeout(fetchWeather, 600000);
+        setTimeout(fetchWeather, 600000);  // Run every 10 minutes
+    }
+
+    async function fetchAirQuality() {
+
+        count++;
+
+        try {
+            // 1. Get the data from the API
+            const secretsResult = await fetch('./secrets.json'); // Path to your JSON file 
+            if (!secretsResult.ok) {
+                throw new Error(`HTTP error! Status: ${pointsResponse.status}`);
+            }       
+            const secrets = await secretsResult.json();
+            const airnowAPIKey = secrets.airnowApiKey;
+
+            const aqiResponse = await fetch(`https://www.airnowapi.org/aq/observation/latLong/current/?format=application/json&latitude=${lat}&longitude=${lon}&distance=25&API_KEY=${airnowAPIKey}`);
+            if (!aqiResponse.ok) {
+                throw new Error(`HTTP error! Status: ${pointsResponse.status}`);
+            }
+            const aqiData = await aqiResponse.json()
+
+            let maxPollutantType;
+
+            // 2. Find the highest AQI value
+            for (const pollutantType of aqiData) {
+                if (maxPollutantType) {
+                    if (pollutantType.AQI > maxPollutantType.AQI) {
+                        maxPollutantType = pollutantType;
+                    } 
+                } else {
+                    maxPollutantType = pollutantType;
+                }
+            }
+
+            // If we failed to get data:
+            if (maxPollutantType == undefined) {
+                throw new Error(`Failed to find max AQI pollutant. API returned ${aqiData}`)
+            }
+
+            // Override for testing
+            //  maxPollutantType = {AQI: 200, Category:{Number:5,Name:"Good"}}
+
+            // 3. Display HTML
+            let airQualityCategory = ""
+            let showIcon = false
+
+            switch (maxPollutantType.Category.Number) {
+                case 1:
+                    airQualityCategory = "good";
+                    break;
+                case 2:
+                    airQualityCategory = "moderate";
+                    break;
+                case 3:
+                    airQualityCategory = "unhealthy-sensitive";
+                    break;
+                case 4:
+                    airQualityCategory = "unhealthy";
+                    showIcon = true;
+                    break;
+                case 5:
+                    airQualityCategory = "very-unhealthy";
+                    showIcon = true;
+                    break;
+                case 6:
+                    airQualityCategory = "hazardous";
+                    showIcon = true;
+                    break;
+            }
+
+            const aqiDiv = document.createElement('div');
+            aqiDiv.classList.add('aqi-container');
+            aqiDiv.classList.add(`aqi-${airQualityCategory}`)
+
+            // From https://www.svgrepo.com/svg/121755/warning-symbol
+            let iconHTML = `<svg class="aqi-warning-icon" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
+	            viewBox="0 0 466.705 466.705" xml:space="preserve">
+                <path d="M459.925,358.907L269.505,61.503c-7.893-12.323-21.518-19.776-36.145-19.776c-14.628,0-28.254,7.453-36.146,19.776
+	            L6.78,358.907c-8.462,13.209-9.047,29.987-1.511,43.752c7.522,13.757,21.964,22.319,37.655,22.319h380.854
+	            c15.691,0,30.134-8.555,37.656-22.319C468.972,388.894,468.387,372.116,459.925,358.907z M209.453,162.607
+	            c0-13.078,10.605-23.675,23.675-23.675c13.072,0,23.676,10.597,23.676,23.675v101.584c0,13.078-10.604,23.675-23.676,23.675
+	            c-13.07,0-23.675-10.597-23.675-23.675V162.607z M232.682,373.613c-16.338,0-29.594-13.249-29.594-29.594
+	            c0-16.347,13.256-29.594,29.594-29.594c16.339,0,29.595,13.247,29.595,29.594C262.276,360.364,249.021,373.613,232.682,373.613z"/>
+                </svg>`;
+
+            if (!showIcon) {
+                iconHTML = "";
+            }
+            aqiDiv.innerHTML = iconHTML;
+
+            const aqiText = document.createElement('p');
+            aqiText.classList.add('aqi-text');
+            aqiText.textContent = `Outdoor AQI: ${maxPollutantType.AQI}`;
+            aqiDiv.appendChild(aqiText);
+
+            airQualityDisplay.innerHTML = '';
+            airQualityDisplay.appendChild(aqiDiv);
+
+            // Ignore low values
+            if (maxPollutantType.Category.Number <= 1) {
+                airQualityDisplay.style.visibility = "hidden";
+            } else {
+                airQualityDisplay.style.visibility = "visible";
+            }
+
+
+        } catch (err) {
+            showAirQualityError(`Could not fetch air quality data. Please try again later. (${err.message})`);
+            setTimeout(() => {
+                airQualityDisplay.style.visibility = "hidden";
+            }, 10000);
+        }
+
+        setTimeout(fetchAirQuality, 600000);  // Run every 10 minutes
     }
 
     fetchWeather();
+    fetchAirQuality();
 });

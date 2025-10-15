@@ -9,6 +9,59 @@ Most of this was structured and written by Gemini, and later modified
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Simple Weather Widget</title>
     <link rel="stylesheet" href="./css/style.css">
+    <style>
+        .aqi-container {
+            border-radius: 100px;
+            display: flex;
+            align-items: center;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+            padding-right: 20px;
+            padding-left: 20px;
+            margin-top: 20px;
+        }
+        .aqi-text {
+            margin-top: 3px;
+            margin-bottom: 0;
+        }
+        .aqi-warning-icon {
+            padding-right: 10px;
+            width: 1em;
+            display: inline;
+            position: relative;
+        }
+        .aqi-good {
+            background-color: rgb(178, 255, 134);
+            color: #424B4C;
+            fill: #424B4C;
+        }
+        .aqi-moderate {
+            background-color: rgb(255, 255, 112);
+            color: #424B4C;;
+            fill: #424B4C;;
+        }
+        .aqi-unhealthy-sensitive {
+            background-color: rgb(255, 206, 114);
+            color: black;
+            fill: black;
+        }
+        .aqi-unhealthy {
+            background-color: rgb(255, 0, 0);
+            color: white;
+            fill:white;
+        }
+        .aqi-very-unhealthy {
+            background-color: blueviolet;
+            color: white;
+            fill:white;
+        }
+        .aqi-hazardous {
+            background-color: brown;
+            color: white;
+            fill:white;
+        }
+    </style>
 </head>
 <body>
 
@@ -17,6 +70,10 @@ Most of this was structured and written by Gemini, and later modified
         <div id="weather-display">
             <p class="loading">Loading weather data...</p>
         </div>
+        <div id="air-quality-display">
+            <p class="loading">Loading AQI data...</p>
+        </div>
+        
     </div>
 
 <script src="script.js"></script>
