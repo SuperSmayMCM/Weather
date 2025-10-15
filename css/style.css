@@ -1,21 +1,21 @@
-@import url(./css/weather-icons.min.css);
+@import url(./weather-icons.min.css);
 
 /* * Declare the font using @font-face 
     * This tells the browser where to find the font and gives it a name.
     */
 @font-face {
     font-family: 'AvenirNextDemi';
-    src: url('font/AvenirNext-DemiBold-03.ttf') format('opentype');
+    src: url('../font/AvenirNext-DemiBold-03.ttf') format('opentype');
 }
 
 @font-face {
     font-family: 'AvenirNextHeavy';
-    src: url('font/AvenirNext-Heavy-09.ttf') format('opentype');
+    src: url('../font/AvenirNext-Heavy-09.ttf') format('opentype');
 }
 
 @font-face {
     font-family: 'AvenirNextMedium';
-    src: url('font/AvenirNext-Medium-06.ttf') format('opentype');
+    src: url('../font/AvenirNext-Medium-06.ttf') format('opentype');
 }
 
 body {
@@ -25,7 +25,7 @@ body {
     align-items: center;
     height: 100vh;
     color: #424B4C;
-    font-size: 40px;
+    font-size: 25px;
     
 }
 .weather-widget {
@@ -36,18 +36,14 @@ body {
 .weather-widget h1 {
     margin-top: 0;
     margin-bottom: 5px;
-    font-size: 35px;
-    
+    font-size: 25px
 }
-.weather-icon {
-    padding-right: 20px;
-}
+
 .temperature {
     font-family: 'AvenirNextHeavy';
     margin: 0px;
 }
 .description {
-    font-size: 40px;
     margin: 0px;
 }
 .loading {
@@ -56,16 +52,18 @@ body {
 }
 .condition {
     display: inline-block;
+    padding-left: 10px;
+    padding-right: 10px;
 }
 .conditions {
     font-size: 90px;
     padding-top: 5px;
+    padding-bottom: 5px;
     display: flex;
     align-items: center;
+    justify-content: center;
 }
 .feels-like {
-    font-family: 'AvenirNextDemi';
-    font-size: 50px;
     margin: 0px;
     padding: 10px;
 }
