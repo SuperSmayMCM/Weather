@@ -25,6 +25,7 @@ body {
     align-items: center;
     height: 100vh;
     color: #424B4C;
+    fill: #424B4C;
     font-size: 40px;
     
 }
@@ -68,4 +69,72 @@ body {
 }
 .feels-like-temp {
     font-family: 'AvenirNextHeavy';
+}
+
+.info-container {
+    border-radius: 100px;
+    display: flex;
+    align-items: center;
+    width: fit-content;
+    margin-left: auto;
+    margin-right: auto;
+    padding-right: 20px;
+    padding-left: 20px;
+    margin-top: 20px;
+}
+.info-text {
+    margin-top: 3px;
+    margin-bottom: 0;
+}
+.alert-icon {
+    padding-right: 10px;
+    width: 1em;
+    display: inline;
+    position: relative;
+}
+.aqi-good {
+    background-color: rgb(190, 255, 165);
+    color: #424c43;
+    fill: #424c43;
+}
+.aqi-moderate {
+    background-color: rgb(255, 255, 112);
+    color: #424B4C;
+    fill: #424B4C;
+}
+.aqi-unhealthy-sensitive {
+    background-color: rgb(255, 206, 114);
+    color: #424B4C;
+    fill: #424B4C;
+}
+.aqi-unhealthy {
+    background-color: rgb(255, 0, 0);
+    color: white;
+    fill:white;
+}
+.aqi-very-unhealthy {
+    background-color: blueviolet;
+    color: white;
+    fill:white;
+}
+.aqi-hazardous {
+    background-color: brown;
+    color: white;
+    fill:white;
+}
+
+.alert-severe {
+    background-color: rgb(255, 0, 0);
+    color: white;
+    fill:white;
+}
+.alert-moderate {
+    background-color:  rgb(255, 206, 114);
+    color: #424B4C;
+    fill: #424B4C;
+}
+.alert-minor {
+    background-color: gray;
+    color: white;
+    fill:white;
 }
