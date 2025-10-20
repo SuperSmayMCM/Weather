@@ -1,4 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Pull secrets that are loaded into window.secrets from secrets.js
+    secrets = window.secrets;
 
     weatherWidget = document.getElementById('weather-widget');
     weatherDisplay = document.getElementById('weather-display');
@@ -10,6 +12,11 @@ document.addEventListener('DOMContentLoaded', () => {
     setInterval(fetchWeather, 600000);  // Refresh weather every 10 minutes
     setInterval(fetchAirQuality, 600000);  // Refresh air quality every 10 minutes
 });
+
+// To be populated from secrets.js
+// This is needed because BrightSign uses file:// instead of a real web server, which blocks fetch from other local files
+        
+let secrets;
 
 let count = 0;
 
@@ -193,9 +200,8 @@ async function fetchWeather() {
 
         let iconClassname = null;
         try {
-            let iconUrlData;
-            iconUrlData = current.icon.split('/')[current.icon.split('/').length - 1].split('?')[0].split(',')[0];
-            iconUrlTime = current.icon.split('/')[current.icon.split('/').length - 2];
+            let iconUrlData = current.icon.split('/')[current.icon.split('/').length - 1].split('?')[0].split(',')[0];
+            let iconUrlTime = current.icon.split('/')[current.icon.split('/').length - 2];
             if (iconUrlTime === "night") {
                 iconClassname = iconMapNight[iconUrlData]
             } else {
@@ -302,12 +308,7 @@ async function fetchAirQuality() {
     count++;
 
     try {
-        // 1. Get the data from the API
-        const secretsResult = await fetch('./secrets.json'); // Path to your JSON file 
-        if (!secretsResult.ok) {
-            throw new Error(`HTTP error! Status: ${pointsResponse.status}`);
-        }       
-        const secrets = await secretsResult.json();
+        
         const airnowAPIKey = secrets.airnowApiKey;
 
         const aqiResponse = await fetch(`https://www.airnowapi.org/aq/observation/latLong/current/?format=application/json&latitude=${lat}&longitude=${lon}&distance=25&API_KEY=${airnowAPIKey}`);
