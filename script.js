@@ -1,6 +1,14 @@
 document.addEventListener('DOMContentLoaded', () => {
+
+    weatherWidget = document.getElementById('weather-widget');
+    weatherDisplay = document.getElementById('weather-display');
+    airQualityDisplay = document.getElementById('air-quality-display');
+
     fetchWeather();
     fetchAirQuality();
+
+    setInterval(fetchWeather, 600000);  // Refresh weather every 10 minutes
+    setInterval(fetchAirQuality, 600000);  // Refresh air quality every 10 minutes
 });
 
 let count = 0;
@@ -16,18 +24,26 @@ let alertIconHTML = `<svg class="alert-icon" version="1.1" id="Capa_1" xmlns="ht
             c0-16.347,13.256-29.594,29.594-29.594c16.339,0,29.595,13.247,29.595,29.594C262.276,360.364,249.021,373.613,232.682,373.613z"/>
             </svg>`;
 
-const weatherWidget = document.getElementById('weather-widget');
-const weatherDisplay = document.getElementById('weather-display');
-const airQualityDisplay = document.getElementById('air-quality-display');
+// Will be populated on DOMContentLoaded
+let weatherWidget;
+let weatherDisplay;
+let airQualityDisplay;
 
 // --- Hardcoded Location ---
 // Coordinates for Madison Children's Museum
-const lat = 43.0731;
-const lon = -89.4012;
+let lat = 43.0731;
+let lon = -89.4012;
+
+let aqiCategoryCutoff = 1;
+let alertSeverityCutoff = "Minor";
+function checkAlertSeverityCutoff(severity) {
+    const severities = ["Minor", "Moderate", "Severe", "Extreme"];
+    return severities.indexOf(severity) >= severities.indexOf(alertSeverityCutoff);
+}
 
 // Testing coordinates
-// const lat = 35.86;
-// const lon = -102.01;
+// let lat = 35.86;
+// let lon = -102.01;
 
 // Mapping from NWS icon urls to weather-icons class names
 const iconMapDay = {
@@ -235,7 +251,7 @@ async function fetchWeather() {
         }
 
         // If we found an alert above minor, display it
-        if (highestSeverityFeature && (highestSeverityFeature.properties.severity === "Moderate" || highestSeverityFeature.properties.severity === "Severe" || highestSeverityFeature.properties.severity === "Extreme")) {
+        if (highestSeverityFeature && checkAlertSeverityCutoff(highestSeverityFeature.properties.severity)) {
             let showAlertIcon = false;
             // Pick color based on alert severity
             if (highestSeverityFeature.properties.severity === "Severe" || highestSeverityFeature.properties.severity === "Extreme") {
@@ -279,7 +295,6 @@ async function fetchWeather() {
         }, 10000);
     }
 
-    setTimeout(fetchWeather, 600000);  // Run every 10 minutes
 }
 
 async function fetchAirQuality() {
@@ -371,7 +386,7 @@ async function fetchAirQuality() {
         airQualityDisplay.appendChild(aqiDiv);
 
         // Ignore low values
-        if (maxPollutantType.Category.Number <= 1) {
+        if (maxPollutantType.Category.Number <= aqiCategoryCutoff) {
             airQualityDisplay.style.display = "none";
         } else {
             airQualityDisplay.style.display = "flex";
@@ -385,5 +400,4 @@ async function fetchAirQuality() {
         }, 10000);
     }
 
-    setTimeout(fetchAirQuality, 600000);  // Run every 10 minutes
 }
