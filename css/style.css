@@ -99,13 +99,13 @@ body {
 }
 .aqi-moderate {
     background-color: rgb(255, 255, 112);
-    color: #424B4C;
-    fill: #424B4C;
+    color: #4c4a42;
+    fill: #4c4a42;
 }
 .aqi-unhealthy-sensitive {
     background-color: rgb(255, 206, 114);
-    color: #424B4C;
-    fill: #424B4C;
+    color: #4c4a42;
+    fill: #4c4a42;
 }
 .aqi-unhealthy {
     background-color: rgb(255, 0, 0);
@@ -130,8 +130,8 @@ body {
 }
 .alert-moderate {
     background-color:  rgb(255, 206, 114);
-    color: #424B4C;
-    fill: #424B4C;
+    color: #4c4a42;
+    fill: #4c4a42;
 }
 .alert-minor {
     background-color: gray;
