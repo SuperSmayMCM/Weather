@@ -41,8 +41,14 @@ let airQualityDisplay;
 let lat = 43.0731;
 let lon = -89.4012;
 
+// Only show alerts *above* these levels
+// AQI category cutoff (1=Good, 2=Moderate, 3=Unhealthy for Sensitive Groups, 4=Unhealthy, 5=Very Unhealthy, 6=Hazardous)
 let aqiCategoryCutoff = 2;
-let alertSeverityCutoff = "";
+// Alert severity cutoff ("", "Minor", "Moderate", "Severe", "Extreme")
+let alertSeverityCutoff = "Moderate";
+
+// Returns true if the given severity is above the cutoff
+// Note: This is above, not equal to
 function alertSeverityAboveCutoff(severity) {
     const severities = ["", "Minor", "Moderate", "Severe", "Extreme"];
     return severities.indexOf(severity) > severities.indexOf(alertSeverityCutoff);
