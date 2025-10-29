@@ -41,11 +41,11 @@ let airQualityDisplay;
 let lat = 43.0731;
 let lon = -89.4012;
 
-let aqiCategoryCutoff = 1;
-let alertSeverityCutoff = "Minor";
-function checkAlertSeverityCutoff(severity) {
-    const severities = ["Minor", "Moderate", "Severe", "Extreme"];
-    return severities.indexOf(severity) >= severities.indexOf(alertSeverityCutoff);
+let aqiCategoryCutoff = 2;
+let alertSeverityCutoff = "";
+function alertSeverityAboveCutoff(severity) {
+    const severities = ["", "Minor", "Moderate", "Severe", "Extreme"];
+    return severities.indexOf(severity) > severities.indexOf(alertSeverityCutoff);
 }
 
 // Testing coordinates
@@ -151,7 +151,7 @@ async function fetchWeather() {
 
     try {
         // 1. Get the forecast office and URL
-        const pointsResponse = await fetch(`https://api.weather.gov/points/${lat},${lon}`);
+        const pointsResponse = await fetch(`https://api.weather.gov/points/${lat},${lon}`, { cache: 'reload' });
         if (!pointsResponse.ok) {
             throw new Error(`HTTP error! Status: ${pointsResponse.status}`);
         }
@@ -159,14 +159,14 @@ async function fetchWeather() {
         const forecastUrl = pointsData.properties.forecastHourly;
 
         // 2. Get the hourly forecast
-        const forecastResponse = await fetch(forecastUrl);
+        const forecastResponse = await fetch(forecastUrl, { cache: 'reload' });
         if (!forecastResponse.ok) {
             throw new Error(`HTTP error! Status: ${forecastResponse.status}`);
         }
         const forecastData = await forecastResponse.json();
 
         // 3. Get the current alerts
-        const alertsResponse = await fetch(`https://api.weather.gov/alerts/active?point=${lat},${lon}`);
+        const alertsResponse = await fetch(`https://api.weather.gov/alerts/active?point=${lat},${lon}`, { cache: 'reload' });
         if (!alertsResponse.ok) {
             throw new Error(`HTTP error! Status: ${alertsResponse.status}`);
         }
@@ -176,9 +176,10 @@ async function fetchWeather() {
         const current = forecastData.properties.periods[0];
 
         // Calculate wind chill https://www.weather.gov/safety/cold-wind-chill-chart
-        let windChill = Math.round(35.74 + 0.6215 * current.temperature - 35.75 * Math.pow(current.windSpeed, 0.16) + 0.4275 * current.temperature * Math.pow(current.windSpeed, 0.16));
+        const windSpeedNumber = parseInt(current.windSpeed);
+        let windChill = Math.round(35.74 + 0.6215 * current.temperature - 35.75 * Math.pow(windSpeedNumber, 0.16) + 0.4275 * current.temperature * Math.pow(windSpeedNumber, 0.16));
         // Only apply wind chill if temperature is 50°F or below and wind speed is above 3 mph
-        if (current.temperature > 50 || parseInt(current.windSpeed) <= 3) {
+        if (current.temperature > 50 || windSpeedNumber <= 3) {
             windChill = current.temperature;
         }
 
@@ -257,7 +258,7 @@ async function fetchWeather() {
         }
 
         // If we found an alert above minor, display it
-        if (highestSeverityFeature && checkAlertSeverityCutoff(highestSeverityFeature.properties.severity)) {
+        if (highestSeverityFeature && alertSeverityAboveCutoff(highestSeverityFeature.properties.severity)) {
             let showAlertIcon = false;
             // Pick color based on alert severity
             if (highestSeverityFeature.properties.severity === "Severe" || highestSeverityFeature.properties.severity === "Extreme") {
@@ -311,7 +312,9 @@ async function fetchAirQuality() {
         
         const airnowAPIKey = secrets.airnowApiKey;
 
-        const aqiResponse = await fetch(`https://www.airnowapi.org/aq/observation/latLong/current/?format=application/json&latitude=${lat}&longitude=${lon}&distance=25&API_KEY=${airnowAPIKey}`);
+        // Get AQI data from AirNow API
+        // We can't use AbortSignal.timeout because I guess BrightSign doesn't support it?
+        const aqiResponse = await fetch(`https://www.airnowapi.org/aq/observation/latLong/current/?format=application/json&latitude=${lat}&longitude=${lon}&distance=25&API_KEY=${airnowAPIKey}`, { cache: 'reload' });
         if (!aqiResponse.ok) {
             console.log(aqiResponse);
             throw new Error(`HTTP error! Status: ${aqiResponse.status}`);
