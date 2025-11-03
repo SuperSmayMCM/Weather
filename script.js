@@ -156,30 +156,101 @@ async function fetchWeather() {
     count++;
 
     try {
-        // 1. Get the forecast office and URL
-        const pointsResponse = await fetch(`https://api.weather.gov/points/${lat},${lon}`, { cache: 'reload' });
+        // 1. Get the closest observation point
+        const pointsResponse = await fetch(`https://api.weather.gov/points/${lat},${lon}`);
         if (!pointsResponse.ok) {
             throw new Error(`HTTP error! Status: ${pointsResponse.status}`);
         }
         const pointsData = await pointsResponse.json();
-        const forecastUrl = pointsData.properties.forecastHourly;
+        const stationsUrl = pointsData.properties.observationStations;
+        // const forecastUrl = pointsData.properties.forecastHourly;
 
-        // 2. Get the hourly forecast
-        const forecastResponse = await fetch(forecastUrl, { cache: 'reload' });
-        if (!forecastResponse.ok) {
-            throw new Error(`HTTP error! Status: ${forecastResponse.status}`);
+        // 2. Get the list of nearby stations
+        const stationsResponse = await fetch(stationsUrl, {
+            method: 'GET',
+            cache: 'no-store',
+            
+            headers: {
+                'User-Agent': '(MadisonChildrensMuseumWelcomeWall, tech-help@madisonchildrensmuseum.org)',
+            }
+        });
+        if (!stationsResponse.ok) {
+            throw new Error(`HTTP error! Status: ${stationsResponse.status}`);
         }
-        const forecastData = await forecastResponse.json();
+        const stationsData = await stationsResponse.json();
+        const closestStationId = stationsData.features[0].properties.stationIdentifier;
+
+        // // 2. Get the hourly forecast
+        // const forecastResponse = await fetch(forecastUrl, {
+        //     method: 'GET',
+        //     cache: 'no-store',
+            
+        //     headers: {
+        //         'User-Agent': '(MadisonChildrensMuseumWelcomeWall, tech-help@madisonchildrensmuseum.org)',
+
+        //         // 'X-Request-Id': `weather-widget-${count}`,
+        //         // Custom cache-busting header
+        //         // 'X-Cache-Bust': new Date().getTime() 
+        //     }
+        // });
+        // if (!forecastResponse.ok) {
+        //     throw new Error(`HTTP error! Status: ${forecastResponse.status}`);
+        // }
+        // const forecastData = await forecastResponse.json();
+
+        // 3. Get the current observation from the closest station
+        const observationResponse = await fetch(`https://api.weather.gov/stations/${closestStationId}/observations/latest`, {
+            method: 'GET',
+            cache: 'no-store',
+            
+            headers: {
+                'User-Agent': '(MadisonChildrensMuseumWelcomeWall, tech-help@madisonchildrensmuseum.org)',
+            }
+        });
+        if (!observationResponse.ok) {
+            throw new Error(`HTTP error! Status: ${observationResponse.status}`);
+        }
+        const observationData = await observationResponse.json();
 
         // 3. Get the current alerts
-        const alertsResponse = await fetch(`https://api.weather.gov/alerts/active?point=${lat},${lon}`, { cache: 'reload' });
+        const alertsResponse = await fetch(`https://api.weather.gov/alerts/active?point=${lat},${lon}`, {
+            method: 'GET',
+            cache: 'no-store',
+            
+            headers: {
+                'User-Agent': '(MadisonChildrensMuseumWelcomeWall, tech-help@madisonchildrensmuseum.org)',
+
+                // 'X-Request-Id': `weather-widget-${count}`,
+                // Custom cache-busting header
+                // 'X-Cache-Bust': new Date().getTime() 
+            }
+        });
         if (!alertsResponse.ok) {
             throw new Error(`HTTP error! Status: ${alertsResponse.status}`);
         }
         const alertsData = await alertsResponse.json();
 
-        // Get the first period (current conditions)
-        const current = forecastData.properties.periods[0];
+        // Get the current weather period based on time
+        // const current = forecastData.properties.periods.find(period => {
+        //     const start = new Date(period.startTime);
+        //     const end = new Date(period.endTime);
+        //     return start <= new Date() && end >= new Date();
+        // });
+
+
+        // Construct current weather object
+        // This is because the observation API and forecast API return different data structures, and this code was originally written for the forecast API
+        // In case we need to revert to using the forecast API later, we keep the same structure
+        let current = {
+            temperature: observationData.properties.temperature.unitCode == "wmoUnit:degC" ? Math.round((observationData.properties.temperature.value * 9/5) + 32) : Math.round(observationData.properties.temperature.value), // Convert to Fahrenheit
+            temperatureUnit: "F",
+            relativeHumidity: {
+                value: Math.round(observationData.properties.relativeHumidity.value)
+            },
+            windSpeed: observationData.properties.windSpeed.unitCode == "wmoUnit:km_h-1" ? Math.round(observationData.properties.windSpeed.value * 2.237) : Math.round(observationData.properties.windSpeed.value), // Convert to mph
+            icon: observationData.properties.icon,
+            shortForecast: observationData.properties.textDescription
+        };
 
         // Calculate wind chill https://www.weather.gov/safety/cold-wind-chill-chart
         const windSpeedNumber = parseInt(current.windSpeed);
@@ -320,7 +391,7 @@ async function fetchAirQuality() {
 
         // Get AQI data from AirNow API
         // We can't use AbortSignal.timeout because I guess BrightSign doesn't support it?
-        const aqiResponse = await fetch(`https://www.airnowapi.org/aq/observation/latLong/current/?format=application/json&latitude=${lat}&longitude=${lon}&distance=25&API_KEY=${airnowAPIKey}`, { cache: 'reload' });
+        const aqiResponse = await fetch(`https://www.airnowapi.org/aq/observation/latLong/current/?format=application/json&latitude=${lat}&longitude=${lon}&distance=25&API_KEY=${airnowAPIKey}`, { cache: 'no-cache' });
         if (!aqiResponse.ok) {
             console.log(aqiResponse);
             throw new Error(`HTTP error! Status: ${aqiResponse.status}`);
