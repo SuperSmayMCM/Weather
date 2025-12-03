@@ -54,6 +54,12 @@ function alertSeverityAboveCutoff(severity) {
     return severities.indexOf(severity) > severities.indexOf(alertSeverityCutoff);
 }
 
+function alertEffectiveNow(effectiveString) {
+    const effectiveDate = new Date(effectiveString);
+    const now = new Date();
+    return now >= effectiveDate;
+}
+
 // Testing coordinates
 // let lat = 35.86;
 // let lon = -102.01;
@@ -180,24 +186,6 @@ async function fetchWeather() {
         const stationsData = await stationsResponse.json();
         const closestStationId = stationsData.features[0].properties.stationIdentifier;
 
-        // // 2. Get the hourly forecast
-        // const forecastResponse = await fetch(forecastUrl, {
-        //     method: 'GET',
-        //     cache: 'no-store',
-            
-        //     headers: {
-        //         'User-Agent': '(MadisonChildrensMuseumWelcomeWall, tech-help@madisonchildrensmuseum.org)',
-
-        //         // 'X-Request-Id': `weather-widget-${count}`,
-        //         // Custom cache-busting header
-        //         // 'X-Cache-Bust': new Date().getTime() 
-        //     }
-        // });
-        // if (!forecastResponse.ok) {
-        //     throw new Error(`HTTP error! Status: ${forecastResponse.status}`);
-        // }
-        // const forecastData = await forecastResponse.json();
-
         // 3. Get the current observation from the closest station
         const observationResponse = await fetch(`https://api.weather.gov/stations/${closestStationId}/observations/latest`, {
             method: 'GET',
@@ -212,17 +200,13 @@ async function fetchWeather() {
         }
         const observationData = await observationResponse.json();
 
-        // 3. Get the current alerts
+        // 4. Get the current alerts
         const alertsResponse = await fetch(`https://api.weather.gov/alerts/active?point=${lat},${lon}`, {
             method: 'GET',
             cache: 'no-store',
             
             headers: {
                 'User-Agent': '(MadisonChildrensMuseumWelcomeWall, tech-help@madisonchildrensmuseum.org)',
-
-                // 'X-Request-Id': `weather-widget-${count}`,
-                // Custom cache-busting header
-                // 'X-Cache-Bust': new Date().getTime() 
             }
         });
         if (!alertsResponse.ok) {
@@ -230,17 +214,11 @@ async function fetchWeather() {
         }
         const alertsData = await alertsResponse.json();
 
-        // Get the current weather period based on time
-        // const current = forecastData.properties.periods.find(period => {
-        //     const start = new Date(period.startTime);
-        //     const end = new Date(period.endTime);
-        //     return start <= new Date() && end >= new Date();
-        // });
-
 
         // Construct current weather object
         // This is because the observation API and forecast API return different data structures, and this code was originally written for the forecast API
-        // In case we need to revert to using the forecast API later, we keep the same structure
+        // In case we need to revert to using the forecast API later, we keep the same structure.
+        // See previous commits for heat index and wind chill code.
         let current = {
             temperature: observationData.properties.temperature.unitCode == "wmoUnit:degC" ? Math.round((observationData.properties.temperature.value * 9/5) + 32) : Math.round(observationData.properties.temperature.value), // Convert to Fahrenheit
             temperatureUnit: "F",
@@ -252,32 +230,6 @@ async function fetchWeather() {
             shortForecast: observationData.properties.textDescription,
 
         };
-
-        // Something about this wind chill formula is wrong, so we're going to switch to using the data from the observation API directly
-        
-        // // Calculate wind chill https://www.weather.gov/safety/cold-wind-chill-chart
-        // const windSpeedNumber = parseInt(current.windSpeed);
-        // let windChill = Math.round(35.74 + 0.6215 * current.temperature - 35.75 * Math.pow(windSpeedNumber, 0.16) + 0.4275 * current.temperature * Math.pow(windSpeedNumber, 0.16));
-        // // Only apply wind chill if temperature is 50°F or below and wind speed is above 3 mph
-        // if (current.temperature > 50 || windSpeedNumber <= 3) {
-        //     windChill = current.temperature;
-        // }
-
-        // // Calculate heat index https://www.weather.gov/ama/heatindex
-        // let heatIndex = Math.round(-42.379 + (2.04901523 * current.temperature) + (10.14333127 * current.relativeHumidity.value) - (0.22475541 * current.temperature * current.relativeHumidity.value) - (0.00683783 * Math.pow(current.temperature, 2)) - (0.05481717 * Math.pow(current.relativeHumidity.value, 2)) + (0.00122874 * Math.pow(current.temperature, 2) * current.relativeHumidity.value) + (0.00085282 * current.temperature * Math.pow(current.relativeHumidity.value, 2)) - (0.00000199 * Math.pow(current.temperature, 2) * Math.pow(current.relativeHumidity.value, 2)));
-        // // Only apply heat index if temperature is 80°F or above and relative humidity is 40% or above
-        // if (current.temperature < 80 || current.relativeHumidity.value < 40) {
-        //     heatIndex = current.temperature;
-        // }
-
-        // // Use wind chill if applicable, otherwise use heat index
-        // if (windChill < current.temperature) {
-        //     current.apparentTemperature = windChill;
-        // } else if (heatIndex > current.temperature) {
-        //     current.apparentTemperature = heatIndex;
-        // } else {
-        //     current.apparentTemperature = current.temperature;
-        // }
 
         // Get Wind Chill and Heat Index from observation API
         if (observationData.properties.windChill.value !== null) {
@@ -366,18 +318,19 @@ async function fetchWeather() {
             }
         }
 
-        // If we found an alert above minor, display it
-        if (highestSeverityFeature && alertSeverityAboveCutoff(highestSeverityFeature.properties.severity)) {
+        // If we found an alert above minor, and it is currently in effect, display it
+        if (highestSeverityFeature && alertSeverityAboveCutoff(highestSeverityFeature.properties.severity) && alertEffectiveNow(highestSeverityFeature.properties.effective)) {
             let showAlertIcon = false;
+
             // Pick color based on alert severity
             if (highestSeverityFeature.properties.severity === "Severe" || highestSeverityFeature.properties.severity === "Extreme") {
                 alertHTML.classList.add("alert-severe");
-                showAlertIcon = true;
             } else if (highestSeverityFeature.properties.severity === "Moderate") {
                 alertHTML.classList.add("alert-moderate");
             } else if (highestSeverityFeature.properties.severity === "Minor" || highestSeverityFeature.properties.severity === "Unknown") {
                 alertHTML.classList.add("alert-minor");
             }
+            
 
             const alertText = document.createElement('p');
             if (showAlertIcon) {
@@ -389,7 +342,8 @@ async function fetchWeather() {
             const alertTextFromAPI = highestSeverityFeature.properties.event;
             if (alertTextFromAPI) {
                 alertText.innerText = alertTextFromAPI;
-            } 
+            }
+
         } else {
             alertHTML.style.display = "none";
         }

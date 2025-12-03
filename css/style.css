@@ -71,7 +71,7 @@ body {
 }
 
 .info-container {
-    border-radius: 100px;
+    border-radius: 50px;
     display: flex;
     align-items: center;
     width: fit-content;
@@ -84,6 +84,8 @@ body {
 .info-text {
     margin-top: 3px;
     margin-bottom: 0;
+    width: min-content;
+    padding: 10px;
 }
 .alert-icon {
     padding-right: 10px;
@@ -136,4 +138,16 @@ body {
     background-color: gray;
     color: white;
     fill:white;
+}
+
+.alert-upcoming {
+    background-color: gray;
+    color: white;
+    fill:white;
+}
+
+.alert-effective-countdown {
+    font-style: italic;
+    opacity: 0.8;
+    padding-left: 10px;
 }
