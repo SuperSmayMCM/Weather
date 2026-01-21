@@ -54,10 +54,10 @@ function alertSeverityAboveCutoff(severity) {
     return severities.indexOf(severity) > severities.indexOf(alertSeverityCutoff);
 }
 
-function alertEffectiveNow(effectiveString) {
-    const effectiveDate = new Date(effectiveString);
+function alertActiveNow(activeString) {
+    const activeDate = new Date(activeString);
     const now = new Date();
-    return now >= effectiveDate;
+    return now >= activeDate;
 }
 
 // Testing coordinates
@@ -319,7 +319,7 @@ async function fetchWeather() {
         }
 
         // If we found an alert above minor, and it is currently in effect, display it
-        if (highestSeverityFeature && alertSeverityAboveCutoff(highestSeverityFeature.properties.severity) && alertEffectiveNow(highestSeverityFeature.properties.effective)) {
+        if (highestSeverityFeature && alertSeverityAboveCutoff(highestSeverityFeature.properties.severity) && alertActiveNow(highestSeverityFeature.properties.onset)) {
             let showAlertIcon = false;
 
             // Pick color based on alert severity
