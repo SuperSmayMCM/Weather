@@ -322,9 +322,13 @@ async function fetchWeather() {
         if (highestSeverityFeature && alertSeverityAboveCutoff(highestSeverityFeature.properties.severity) && alertActiveNow(highestSeverityFeature.properties.onset)) {
             let showAlertIcon = false;
 
-            // Pick color based on alert severity
+            // Pick color based on alert severity and urgency.
             if (highestSeverityFeature.properties.severity === "Severe" || highestSeverityFeature.properties.severity === "Extreme") {
-                alertHTML.classList.add("alert-severe");
+                if (highestSeverityFeature.properties.urgency === "Immediate") {
+                    alertHTML.classList.add("alert-severe");
+                } else {
+                    alertHTML.classList.add("alert-moderate");
+                }
             } else if (highestSeverityFeature.properties.severity === "Moderate") {
                 alertHTML.classList.add("alert-moderate");
             } else if (highestSeverityFeature.properties.severity === "Minor" || highestSeverityFeature.properties.severity === "Unknown") {
